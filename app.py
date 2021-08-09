@@ -1,4 +1,6 @@
 import os
+import shutil
+from datetime import datetime
 
 import torch
 from flask import Flask, jsonify, request
@@ -9,11 +11,19 @@ app = Flask(__name__)
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
-        # Configure which model to use
-        target = "2021-08-07-00:29:04"
 
         # Load model
-        model = torch.load(os.path.join("./models/models", target, "model.pickle"))
+        model_version = "2021-08-07-00:29:04"
+        model = torch.load(os.path.join("./models/models", model_version, "model.pickle"))
+
+        # Make workspace directory
+        workspace_directory = os.path.join("workspace", datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
+        os.makedirs(workspace_directory, exist_ok=True)
+
+        # TODO
+
+        # Delete workspace directory
+        shutil.rmtree(workspace_directory)
 
         return jsonify({"hello": "world"})
 
