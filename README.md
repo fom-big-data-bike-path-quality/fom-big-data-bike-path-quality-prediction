@@ -15,13 +15,22 @@
 
 ## About The Project
 
-tbd
+The aim of this app is to provide REST endpoints which accept bike activity accelerometer measurements and predict the surface type. 
+Therefore it makes use of [models](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-model) trained by an
+ [analytics component](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-analytics).
 
 ### Built With
 
 * [Flask](https://flask.palletsprojects.com/)
 
 ## Installation
+
+Initialize the submodules of this repository by running the following commands.
+
+```shell script
+git submodule init
+git submodule update
+```
 
 Install the following dependencies to fulfill the requirements for this project to run.
 

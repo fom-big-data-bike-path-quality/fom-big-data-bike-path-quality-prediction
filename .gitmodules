@@ -1,0 +1,3 @@
+[submodule "models"]
+	path = models
+	url = https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-model
