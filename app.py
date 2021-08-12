@@ -12,7 +12,8 @@ library_paths = [
     os.path.join(os.getcwd(), 'lib'),
     os.path.join(os.getcwd(), 'lib/data_pre_processing'),
     os.path.join(os.getcwd(), 'lib/data_preparation'),
-    os.path.join(os.getcwd(), 'lib/log')
+    os.path.join(os.getcwd(), 'lib/log'),
+    os.path.join(os.getcwd(), 'lib/base_model')
 ]
 
 for p in library_paths:
@@ -25,6 +26,7 @@ from data_loader import DataLoader
 from data_filterer import DataFilterer
 from data_transformer import DataTransformer
 from data_normalizer import DataNormalizer
+from cnn_base_model_helper import CnnBaseModelHelper
 
 app = Flask(__name__)
 
@@ -57,6 +59,12 @@ def predict():
         dataframes = DataFilterer().run(logger=logger, dataframes=dataframes)
         dataframes = DataTransformer().run(logger=logger, dataframes=dataframes)
         dataframes = DataNormalizer().run(logger=logger, dataframes=dataframes)
+
+        input_tensor = CnnBaseModelHelper().run(
+            logger=logger,
+            predict_dataframes=dataframes,
+            log_path=workspace_path
+        )
 
         # TODO
 
