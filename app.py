@@ -11,6 +11,7 @@ from flask import Flask, jsonify, request
 library_paths = [
     os.path.join(os.getcwd(), 'lib'),
     os.path.join(os.getcwd(), 'lib/data_pre_processing'),
+    os.path.join(os.getcwd(), 'lib/data_preparation'),
     os.path.join(os.getcwd(), 'lib/log')
 ]
 
@@ -21,6 +22,7 @@ for p in library_paths:
 # Import library classes
 from logger_facade import LoggerFacade
 from data_loader import DataLoader
+from data_filterer import DataFilterer
 
 app = Flask(__name__)
 
@@ -49,6 +51,8 @@ def predict():
             logger=logger,
             data_path=workspace_path
         )
+
+        dataframes = DataFilterer().run(logger=logger, dataframes=dataframes)
 
         # TODO
 
