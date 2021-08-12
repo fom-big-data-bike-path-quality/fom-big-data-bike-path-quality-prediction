@@ -38,6 +38,7 @@ Install the following dependencies to fulfill the requirements for this project 
 python -m pip install --upgrade pip
 pip install flask
 pip install torch
+pip install pandas
 ```
 
 ## Usage

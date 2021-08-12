@@ -1,10 +1,26 @@
 import csv
 import os
 import shutil
+import sys
 from datetime import datetime
 
 import torch
 from flask import Flask, jsonify, request
+
+# Make library available in path
+library_paths = [
+    os.path.join(os.getcwd(), 'lib'),
+    os.path.join(os.getcwd(), 'lib/data_pre_processing'),
+    os.path.join(os.getcwd(), 'lib/log')
+]
+
+for p in library_paths:
+    if not (p in sys.path):
+        sys.path.insert(0, p)
+
+# Import library classes
+from logger_facade import LoggerFacade
+from data_loader import DataLoader
 
 app = Flask(__name__)
 
@@ -17,18 +33,27 @@ def predict():
         model = torch.load(os.path.join("./models/models", model_version, "model.pickle"))
 
         # Make workspace directory
-        workspace_directory = os.path.join("workspace", datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
-        os.makedirs(workspace_directory, exist_ok=True)
+        workspace_path = os.path.join("workspace", datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
+        os.makedirs(workspace_path, exist_ok=True)
+
+        # Initialize logger
+        logger = LoggerFacade(workspace_path, console=True, file=True)
+        logger.log_line("Start Predication")
 
         payload = request.get_json(force=True)
 
-        convert_bike_activity_sample_to_json_file(workspace_directory, "bike_activity_sample.json", payload)
-        convert_bike_activity_sample_to_csv_file(workspace_directory, "bike_activity_sample.csv", payload)
+        convert_bike_activity_sample_to_json_file(workspace_path, "bike_activity_sample.json", payload)
+        convert_bike_activity_sample_to_csv_file(workspace_path, "bike_activity_sample.csv", payload)
+
+        dataframes = DataLoader().run(
+            logger=logger,
+            data_path=workspace_path
+        )
 
         # TODO
 
         # Delete workspace directory
-        shutil.rmtree(workspace_directory)
+        shutil.rmtree(workspace_path)
 
         return jsonify({"hello": "world"})
 
