@@ -23,6 +23,7 @@ for p in library_paths:
 from logger_facade import LoggerFacade
 from data_loader import DataLoader
 from data_filterer import DataFilterer
+from data_transformer import DataTransformer
 
 app = Flask(__name__)
 
@@ -53,6 +54,7 @@ def predict():
         )
 
         dataframes = DataFilterer().run(logger=logger, dataframes=dataframes)
+        dataframes = DataTransformer().run(logger=logger, dataframes=dataframes)
 
         # TODO
 
