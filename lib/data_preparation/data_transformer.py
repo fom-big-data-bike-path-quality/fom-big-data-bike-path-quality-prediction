@@ -1,4 +1,5 @@
 import math
+
 import pandas as pd
 
 
@@ -78,6 +79,67 @@ def getLabelEncoding(row):
         return 99
 
 
+def reverseLabelEncoding(label):
+    if label == 0:
+        return "paved"
+    elif label == 1:
+        return "asphalt"
+    elif label == 2:
+        return "concrete"
+    elif label == 3:
+        return "concrete lanes"
+    elif label == 4:
+        return "concrete plates"
+    elif label == 5:
+        return "paving stones"
+    elif label == 6:
+        return "sett"
+    elif label == 7:
+        return "unhewn cobblestone"
+    elif label == 8:
+        return "cobblestone"
+    elif label == 9:
+        return "wood"
+    elif label == 10:
+        return "stepping_stones"
+    elif label == 11:
+        return "unpaved"
+    elif label == 12:
+        return "compacted"
+    elif label == 13:
+        return "fine gravel"
+    elif label == 14:
+        return "gravel"
+    elif label == 15:
+        return "rock"
+    elif label == 16:
+        return "pebblestone"
+    elif label == 17:
+        return "ground"
+    elif label == 18:
+        return "dirt"
+    elif label == 19:
+        return "ground"
+    elif label == 20:
+        return "earth"
+    elif label == 21:
+        return "grass"
+    elif label == 22:
+        return "mud"
+    elif label == 23:
+        return "sand"
+    elif label == 24:
+        return "woodchips"
+    elif label == 25:
+        return "snow"
+    elif label == 26:
+        return "ice"
+    elif label == 27:
+        return "salt"
+    else:
+        return "unknown"
+
+
 #
 # Main
 #
@@ -106,3 +168,6 @@ class DataTransformer:
 
         logger.log_line("Data transformer finished with " + str(len(dataframes)) + " dataframes transformed")
         return dataframes
+
+    def runReverse(self, label):
+        return reverseLabelEncoding(label)

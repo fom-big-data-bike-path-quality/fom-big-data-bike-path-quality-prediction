@@ -13,7 +13,8 @@ library_paths = [
     os.path.join(os.getcwd(), 'lib/data_pre_processing'),
     os.path.join(os.getcwd(), 'lib/data_preparation'),
     os.path.join(os.getcwd(), 'lib/log'),
-    os.path.join(os.getcwd(), 'lib/base_model')
+    os.path.join(os.getcwd(), 'lib/base_model'),
+    os.path.join(os.getcwd(), 'lib/base_model/layers'),
 ]
 
 for p in library_paths:
@@ -27,6 +28,7 @@ from data_filterer import DataFilterer
 from data_transformer import DataTransformer
 from data_normalizer import DataNormalizer
 from cnn_base_model_helper import CnnBaseModelHelper
+from classifier import Classifier
 
 app = Flask(__name__)
 
@@ -34,9 +36,17 @@ app = Flask(__name__)
 @app.route('/predict', methods=['POST'])
 def predict():
     if request.method == 'POST':
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
         # Load model
         model_version = "2021-08-07-00:29:04"
-        model = torch.load(os.path.join("./models/models", model_version, "model.pickle"))
+        model = Classifier(
+            input_channels=1,  # TODO Derive this value from data
+            # input_channels=train_array.shape[1],
+            num_classes=18
+        ).to(device)
+        model.load_state_dict(torch.load(os.path.join("./models/models", model_version, "model.pickle")))
+        model.eval()
 
         # Make workspace directory
         workspace_path = os.path.join("workspace", datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
@@ -60,18 +70,19 @@ def predict():
         dataframes = DataTransformer().run(logger=logger, dataframes=dataframes)
         dataframes = DataNormalizer().run(logger=logger, dataframes=dataframes)
 
-        input_tensor = CnnBaseModelHelper().run(
+        tensor = CnnBaseModelHelper().run(
             logger=logger,
             predict_dataframes=dataframes,
             log_path=workspace_path
         )
 
-        # TODO
+        outputs = model.forward(tensor)
+        _, y_hat = outputs.max(1)
 
         # Delete workspace directory
         shutil.rmtree(workspace_path)
 
-        return jsonify({"hello": "world"})
+        return jsonify({"surface_type": DataTransformer().runReverse(y_hat)})
 
 
 def convert_bike_activity_sample_to_json_file(results_path, results_file_name, data):
