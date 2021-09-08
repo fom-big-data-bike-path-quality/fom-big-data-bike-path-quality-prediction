@@ -39,7 +39,7 @@ def predict():
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Load model
-        model_version = "2021-08-07-00:29:04"
+        model_version = "latest"
         model = Classifier(
             input_channels=1,  # TODO Derive this value from data
             # input_channels=train_array.shape[1],
