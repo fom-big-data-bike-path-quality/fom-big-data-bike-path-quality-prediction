@@ -1,8 +1,8 @@
-[![Issues](https://img.shields.io/github/issues/florianschwanz/fom-big-data-bike-path-quality-prediction)](https://github.com/florianschwanz/fom-big-data-bike-path-quality-prediction/issues)
+[![Issues](https://img.shields.io/github/issues/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-prediction)](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-prediction/issues)
 
 <br />
 <p align="center">
-  <a href="https://github.com/florianschwanz/fom-big-data-bike-path-quality-prediction">
+  <a href="https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-prediction">
     <img src="./logo.png" alt="Logo" width="80" height="80">
   </a>
 
@@ -51,7 +51,7 @@ python app.py
 
 ## Roadmap
 
-See the [open issues](https://github.com/florianschwanz/fom-big-data-bike-path-quality-prediction/issues) for a list of proposed features
+See the [open issues](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-prediction/issues) for a list of proposed features
  (and known issues).
 
 ## Contributing
