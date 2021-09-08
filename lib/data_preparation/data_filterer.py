@@ -17,6 +17,7 @@ class DataFilterer:
                 if not quiet:
                     logger.log_line("✗️ Filtering out " + name + " (less than 500 measurements)")
                 dataframes.pop(name)
+                raise Exception("Sample has less than 500 measurements")
                 continue
 
             # Exclude dataframes which contain surface type 'mixed'
@@ -31,6 +32,7 @@ class DataFilterer:
                 if not quiet:
                     logger.log_line("✗️ Filtering out " + name + " (containing slow measurements)")
                 dataframes.pop(name)
+                raise Exception("Sample contains slow measurements")
                 continue
 
             if not quiet:

@@ -66,23 +66,27 @@ def predict():
             data_path=workspace_path
         )
 
-        dataframes = DataFilterer().run(logger=logger, dataframes=dataframes)
-        dataframes = DataTransformer().run(logger=logger, dataframes=dataframes)
-        dataframes = DataNormalizer().run(logger=logger, dataframes=dataframes)
+        try:
+            dataframes = DataFilterer().run(logger=logger, dataframes=dataframes)
+            dataframes = DataTransformer().run(logger=logger, dataframes=dataframes)
+            dataframes = DataNormalizer().run(logger=logger, dataframes=dataframes)
 
-        tensor = CnnBaseModelHelper().run(
-            logger=logger,
-            predict_dataframes=dataframes,
-            log_path=workspace_path
-        )
+            tensor = CnnBaseModelHelper().run(
+                logger=logger,
+                predict_dataframes=dataframes,
+                log_path=workspace_path
+            )
 
-        outputs = model.forward(tensor)
-        _, y_hat = outputs.max(1)
+            outputs = model.forward(tensor)
+            _, prediction = outputs.max(1)
 
-        # Delete workspace directory
-        shutil.rmtree(workspace_path)
+            # Delete workspace directory
+            shutil.rmtree(workspace_path)
 
-        return jsonify({"surface_type": DataTransformer().runReverse(y_hat)})
+            return jsonify({"surface_type": DataTransformer().runReverse(prediction)})
+
+        except Exception as inst:
+            return jsonify({"error": inst.args[0]})
 
 
 def convert_bike_activity_sample_to_json_file(results_path, results_file_name, data):
