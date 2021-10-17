@@ -45,7 +45,7 @@ def predict():
             # input_channels=train_array.shape[1],
             num_classes=18
         ).to(device)
-        model.load_state_dict(torch.load(os.path.join("./models/models", model_version, "model.pickle")))
+        model.load_state_dict(torch.load(os.path.join("./results/results", model_version, "model.pickle")))
         model.eval()
 
         # Make workspace directory

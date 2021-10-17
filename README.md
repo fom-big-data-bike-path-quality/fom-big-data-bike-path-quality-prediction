@@ -16,7 +16,7 @@
 ## About The Project
 
 The aim of this app is to provide REST endpoints which accept bike activity accelerometer measurements and predict the surface type. 
-Therefore it makes use of [models](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-model) trained by an
+Therefore it makes use of the [results](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-results) trained by an
  [analytics component](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-analytics).
 
 ### Built With
