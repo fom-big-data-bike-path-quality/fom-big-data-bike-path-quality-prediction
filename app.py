@@ -7,14 +7,20 @@ from datetime import datetime
 import torch
 from flask import Flask, jsonify, request
 
+file_path = os.path.realpath(__file__)
+script_path = os.path.dirname(file_path)
+
 # Make library available in path
 library_paths = [
-    os.path.join(os.getcwd(), 'lib'),
-    os.path.join(os.getcwd(), 'lib/data_pre_processing'),
-    os.path.join(os.getcwd(), 'lib/data_preparation'),
-    os.path.join(os.getcwd(), 'lib/log'),
-    os.path.join(os.getcwd(), 'lib/base_model'),
-    os.path.join(os.getcwd(), 'lib/base_model/layers'),
+    os.path.join(script_path, 'analytics', 'lib'),
+    os.path.join(script_path, 'analytics', 'lib', 'log'),
+    os.path.join(script_path, 'analytics', 'lib', 'data_pre_processing'),
+    os.path.join(script_path, 'analytics', 'lib', 'data_preparation'),
+    os.path.join(script_path, 'analytics', 'lib', 'models'),
+    os.path.join(script_path, 'analytics', 'lib', 'models', 'base_model_knn_dtw'),
+    os.path.join(script_path, 'analytics', 'lib', 'models', 'base_model_cnn'),
+    os.path.join(script_path, 'analytics', 'lib', 'models', 'base_model_cnn', 'layers'),
+    os.path.join(script_path, 'analytics', 'lib', 'models', 'base_model_lstm'),
 ]
 
 for p in library_paths:
