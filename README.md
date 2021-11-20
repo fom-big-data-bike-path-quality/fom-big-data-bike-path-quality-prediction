@@ -36,9 +36,15 @@ Install the following dependencies to fulfill the requirements for this project 
 
 ```shell script
 python -m pip install --upgrade pip
-pip install flask
-pip install torch
+pip install flake8 pytest
 pip install pandas
+pip install matplotlib
+pip install sklearn
+pip install torch
+pip install tqdm
+pip install seaborn
+pip install telegram-send
+pip install flask
 ```
 
 ## Usage
