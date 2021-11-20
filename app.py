@@ -2,7 +2,6 @@ import csv
 import os
 import shutil
 import sys
-from datetime import datetime
 
 import torch
 from flask import Flask, jsonify, request
@@ -14,6 +13,7 @@ script_path = os.path.dirname(file_path)
 library_paths = [
     os.path.join(script_path, 'analytics', 'lib'),
     os.path.join(script_path, 'analytics', 'lib', 'log'),
+    os.path.join(script_path, 'analytics', 'lib', 'data_transformation'),
     os.path.join(script_path, 'analytics', 'lib', 'data_pre_processing'),
     os.path.join(script_path, 'analytics', 'lib', 'data_preparation'),
     os.path.join(script_path, 'analytics', 'lib', 'models'),
@@ -33,39 +33,53 @@ from data_loader import DataLoader
 from data_filterer import DataFilterer
 from data_transformer import DataTransformer
 from data_normalizer import DataNormalizer
-from cnn_base_model_helper import CnnBaseModelHelper
-from classifier import Classifier
+from model_preparator import ModelPreparator
+from label_encoder import LabelEncoder
+from cnn_classifier import CnnClassifier
 
 app = Flask(__name__)
 
+# Number of classes
+num_classes = LabelEncoder().num_classes()
 
-@app.route('/predict', methods=['POST'])
-def predict():
+slice_width = 500
+measurement_speed_limit = 5.0
+
+
+@app.route('/predict/cnn', methods=['POST'])
+def predict_cnn():
     if request.method == 'POST':
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+        # Determine number of linear channels based on slice width
+        linear_channels = ModelPreparator().get_linear_channels(slice_width)
+
+        # Define classifier
+        classifier = CnnClassifier(
+            input_channels=1,
+            num_classes=num_classes,
+            linear_channels=linear_channels
+        ).to(device)
+
         # Load model
         model_version = "latest"
-        model = Classifier(
-            input_channels=1,  # TODO Derive this value from data
-            # input_channels=train_array.shape[1],
-            num_classes=18
-        ).to(device)
-        model.load_state_dict(torch.load(os.path.join("./results/results", model_version, "model.pickle")))
-        model.eval()
+        classifier.load_state_dict(torch.load(
+            os.path.join(script_path, "results", "results", "cnn", model_version, "04-modelling", "model.pickle"),
+            map_location=torch.device(device)
+        ))
+        classifier.eval()
 
         # Make workspace directory
-        workspace_path = os.path.join("workspace", datetime.now().strftime("%Y-%m-%d-%H:%M:%S"))
+        workspace_path = os.path.join(script_path, "workspace", "latest")
         os.makedirs(workspace_path, exist_ok=True)
 
         # Initialize logger
         logger = LoggerFacade(workspace_path, console=True, file=True)
-        logger.log_line("Start Predication")
+        logger.log_line("Start Prediction")
 
         payload = request.get_json(force=True)
-
-        convert_bike_activity_sample_to_json_file(workspace_path, "bike_activity_sample.json", payload)
-        convert_bike_activity_sample_to_csv_file(workspace_path, "bike_activity_sample.csv", payload)
+        payload_to_json_file(workspace_path, "bike_activity_sample.json", payload)
+        payload_to_csv_file(workspace_path, "bike_activity_sample.csv", payload)
 
         dataframes = DataLoader().run(
             logger=logger,
@@ -73,69 +87,68 @@ def predict():
         )
 
         try:
-            dataframes = DataFilterer().run(logger=logger, dataframes=dataframes)
-            dataframes = DataTransformer().run(logger=logger, dataframes=dataframes)
+            dataframes = DataFilterer().run(logger=logger, dataframes=dataframes, slice_width=slice_width,
+                                            measurement_speed_limit=measurement_speed_limit,
+                                            keep_unflagged_lab_conditions=True)
+            dataframes = DataTransformer().run(logger=logger, dataframes=dataframes, skip_label_encode_surface_type=True)
             dataframes = DataNormalizer().run(logger=logger, dataframes=dataframes)
 
-            tensor = CnnBaseModelHelper().run(
-                logger=logger,
-                predict_dataframes=dataframes,
-                log_path=workspace_path
-            )
+            tensor = ModelPreparator().create_tensor(dataframes=dataframes, device=device)
 
-            outputs = model.forward(tensor)
+            outputs = classifier.forward(tensor)
             _, prediction = outputs.max(1)
 
             # Delete workspace directory
             shutil.rmtree(workspace_path)
 
-            return jsonify({"surface_type": DataTransformer().runReverse(prediction)})
+            return jsonify({"surface_type": DataTransformer().run_reverse(prediction)})
 
         except Exception as inst:
             return jsonify({"error": inst.args[0]})
 
 
-def convert_bike_activity_sample_to_json_file(results_path, results_file_name, data):
+def payload_to_json_file(results_path, results_file_name, data):
     with open(os.path.join(results_path, results_file_name), "w") as json_file:
-        json_file.write("%s" % data)
+        json_file.write(("%s" % data).replace("\'", "\""))
 
 
-def convert_bike_activity_sample_to_csv_file(results_path, results_file_name, data):
+def payload_to_csv_file(results_path, results_file_name, data):
     bike_activity_sample_with_measurements = data
 
-    bike_activity_uid = None
-    bike_activity_surface_type = None
-    bike_activity_smoothness_type = None
-    bike_activity_phone_position = None
-    bike_activity_bike_type = None
+    bike_activity_uid = 0
+    bike_activity_surface_type = "unknown"
+    bike_activity_smoothness_type = "unknown"
+    bike_activity_phone_position = "unknown"
+    bike_activity_bike_type = "unknown"
 
     with open(results_path + "/" + results_file_name, "w", newline='') as csvfile:
         csv_writer = csv.writer(csvfile, delimiter=',', quotechar='|', quoting=csv.QUOTE_MINIMAL)
         csv_writer.writerow([
             # Descriptive values
-            'bike_activity_uid',
-            'bike_activity_sample_uid',
-            'bike_activity_measurement',
-            'bike_activity_measurement_timestamp',
-            'bike_activity_measurement_lon',
-            'bike_activity_measurement_lat',
+            "bike_activity_uid",
+            "bike_activity_sample_uid",
+            "bike_activity_measurement",
+            "bike_activity_measurement_timestamp",
+            "bike_activity_measurement_lon",
+            "bike_activity_measurement_lat",
             # Input values
-            'bike_activity_measurement_speed',
-            'bike_activity_measurement_accelerometer_x',
-            'bike_activity_measurement_accelerometer_y',
-            'bike_activity_measurement_accelerometer_z',
-            'bike_activity_phone_position',
-            'bike_activity_bike_type',
+            "bike_activity_measurement_speed",
+            "bike_activity_measurement_accelerometer_x",
+            "bike_activity_measurement_accelerometer_y",
+            "bike_activity_measurement_accelerometer_z",
+            "bike_activity_phone_position",
+            "bike_activity_bike_type",
             # Output values
-            'bike_activity_surface_type',
-            'bike_activity_smoothness_type',
+            "bike_activity_surface_type",
+            "bike_activity_smoothness_type",
         ])
 
         bike_activity_sample = bike_activity_sample_with_measurements["bikeActivitySample"]
         bike_activity_measurements = bike_activity_sample_with_measurements["bikeActivityMeasurements"]
 
         bike_activity_sample_uid = bike_activity_sample["uid"]
-        bike_activity_sample_surface_type = bike_activity_sample["surfaceType"] if "surfaceType" in bike_activity_sample else None
+        bike_activity_sample_surface_type = bike_activity_sample[
+            "surfaceType"] if "surfaceType" in bike_activity_sample else None
 
         for bike_activity_measurement in bike_activity_measurements:
             bike_activity_measurement_uid = bike_activity_measurement["uid"]
