@@ -41,6 +41,7 @@ from data_normalizer import DataNormalizer
 from model_preparator import ModelPreparator
 from label_encoder import LabelEncoder
 from cnn_classifier import CnnClassifier
+from test_values import sample_asphalt
 
 app = FastAPI()
 app.add_middleware(
@@ -89,6 +90,7 @@ class BikeActivitySampleWithMeasurements(BaseModel):
 
 class ResultWrapper(BaseModel):
     surface_type = ""
+
     def __init__(self, surface_type: str):
         super().__init__()
         self.surface_type = surface_type
@@ -96,13 +98,14 @@ class ResultWrapper(BaseModel):
 
 class ErrorWrapper(BaseModel):
     error = ""
+
     def __init__(self, error: str):
         super().__init__()
         self.error = error
 
 
 @app.post('/predict/cnn')
-def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements):
+def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Determine number of linear channels based on slice width
