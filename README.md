@@ -9,7 +9,7 @@
   <h1 align="center">Bike Path Quality (Observatorio)</h1>
 
   <p align="center">
-    Flask based web service that predicts surface type based on bike activity time series data
+    FastAPI based web service that predicts surface type based on bike activity time series data
   </p>
 </p>
 
@@ -21,7 +21,7 @@ Therefore it makes use of the [results](https://github.com/fom-big-data-bike-pat
 
 ### Built With
 
-* [Flask](https://flask.palletsprojects.com/)
+* [FastAPI](https://fastapi.tiangolo.com/)
 
 ## Installation
 
@@ -44,7 +44,9 @@ pip install torch
 pip install tqdm
 pip install seaborn
 pip install telegram-send
-pip install flask
+pip install fastapi
+pip install uvicorn
+pip install requests
 ```
 
 ## Usage
