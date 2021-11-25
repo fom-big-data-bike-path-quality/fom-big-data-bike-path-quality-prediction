@@ -41,6 +41,7 @@ from data_normalizer import DataNormalizer
 from model_preparator import ModelPreparator
 from label_encoder import LabelEncoder
 from cnn_classifier import CnnClassifier
+from lstm_classifier import LstmClassifier
 from test_values import sample_asphalt
 
 app = FastAPI()
@@ -163,6 +164,64 @@ def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMe
     except Exception as inst:
         return ErrorWrapper(error=inst.args[0])
 
+@app.post('/predict/lstm')
+def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt):
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # Set default values
+    dropout = 0.5
+    lstm_hidden_dimension = 128
+    lstm_layer_dimension = 3
+
+    # Define classifier
+    classifier = LstmClassifier(device=device, input_size=slice_width, hidden_dimension=lstm_hidden_dimension,
+                                layer_dimension=lstm_layer_dimension, num_classes=num_classes,
+                                dropout=dropout).to(device)
+
+    # Load model
+    model_version = "latest"
+    classifier.load_state_dict(torch.load(
+        os.path.join(script_path, "results", "results", "lstm", model_version, "04-modelling", "model.pickle"),
+        map_location=torch.device(device)
+    ))
+    classifier.eval()
+
+    # Make workspace directory
+    workspace_path = os.path.join(script_path, "workspace", "latest")
+    os.makedirs(workspace_path, exist_ok=True)
+
+    # Initialize logger
+    logger = LoggerFacade(workspace_path, console=True, file=True)
+    logger.log_line("Start Prediction")
+
+    # Serialize sample
+    payload_to_json_file(workspace_path, "bike_activity_sample.json", bike_activity_sample_with_measurements)
+    payload_to_csv_file(workspace_path, "bike_activity_sample.csv", bike_activity_sample_with_measurements)
+
+    dataframes = DataLoader().run(
+        logger=logger,
+        data_path=workspace_path
+    )
+
+    try:
+        dataframes = DataFilterer().run(logger=logger, dataframes=dataframes, slice_width=slice_width,
+                                        measurement_speed_limit=measurement_speed_limit,
+                                        keep_unflagged_lab_conditions=True)
+        dataframes = DataTransformer().run(logger=logger, dataframes=dataframes, skip_label_encode_surface_type=True)
+        dataframes = DataNormalizer().run(logger=logger, dataframes=dataframes)
+
+        tensor = ModelPreparator().create_tensor(dataframes=dataframes, device=device)
+
+        outputs = classifier.forward(tensor)
+        _, prediction = outputs.max(1)
+
+        # Delete workspace directory
+        shutil.rmtree(workspace_path)
+
+        return ResultWrapper(surface_type=DataTransformer().run_reverse(prediction))
+
+    except Exception as inst:
+        return ErrorWrapper(error=inst.args[0])
 
 def payload_to_json_file(results_path, results_file_name,
                          bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements):
