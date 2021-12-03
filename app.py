@@ -7,7 +7,7 @@ from typing import List
 
 import torch
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
@@ -105,8 +105,8 @@ class ErrorWrapper(BaseModel):
         self.error = error
 
 
-@app.post('/predict/cnn')
-def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt):
+@app.post('/predict/cnn', status_code=200)
+def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt, response: Response = None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Determine number of linear channels based on slice width
@@ -162,10 +162,11 @@ def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMe
         return ResultWrapper(surface_type=DataTransformer().run_reverse(prediction))
 
     except Exception as inst:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return ErrorWrapper(error=inst.args[0])
 
 @app.post('/predict/lstm')
-def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt):
+def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt, response: Response = None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Set default values
@@ -221,6 +222,7 @@ def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithM
         return ResultWrapper(surface_type=DataTransformer().run_reverse(prediction))
 
     except Exception as inst:
+        response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return ErrorWrapper(error=inst.args[0])
 
 def payload_to_json_file(results_path, results_file_name,
