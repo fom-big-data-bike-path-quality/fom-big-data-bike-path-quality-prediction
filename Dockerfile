@@ -1,9 +1,22 @@
 FROM tiangolo/uvicorn-gunicorn-fastapi:python3.9-slim
 
-COPY app /app
-COPY lib /lib
-COPY results /results
+COPY app.py /app/app.py
+COPY test_values.py /app/test_values.py
+COPY requirements.txt requirements.txt
+COPY analytics /app/analytics
+COPY results /app/results
 
-RUN pip install -r requirements.txt
+RUN python -m pip install --upgrade pip
+RUN pip install flake8 pytest
+RUN pip install pandas
+RUN pip install matplotlib
+RUN pip install sklearn
+RUN pip install torch
+RUN pip install tqdm
+RUN pip install seaborn
+RUN pip install telegram-send
+RUN pip install fastapi
+RUN pip install uvicorn
+RUN pip install requests
 
-CMD exec gunicorn --bind :8080 --workers 1 --worker-class uvicorn.workers.UvicornWorker --threads 8 app:app
+CMD python app.py
