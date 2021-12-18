@@ -57,6 +57,15 @@ Run this command to start the dev server.
 python app.py
 ```
 
+### Usage (local docker)
+
+Run this command to run the docker container locally.
+
+```shell
+docker build -t bike-path-quality-prediction .
+docker run -p 8000:8000 bike-path-quality-prediction
+```
+
 ## Roadmap
 
 See the [open issues](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-prediction/issues) for a list of proposed features
