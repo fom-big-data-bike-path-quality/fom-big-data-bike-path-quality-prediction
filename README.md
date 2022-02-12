@@ -66,6 +66,16 @@ docker build -t bike-path-quality-prediction .
 docker run -p 8000:8000 bike-path-quality-prediction
 ```
 
+### Usage (docker deployment)
+
+Run these commands to deploy the Docker image to Google Cloud.
+
+```shell
+gcloud auth login
+gcloud config set project bike-path-quality-339900
+gcloud builds submit --tag eu.gcr.io/bike-path-quality-339900/bike-path-quality-prediction
+```
+
 ## Roadmap
 
 See the [open issues](https://github.com/fom-big-data-bike-path-quality/fom-big-data-bike-path-quality-prediction/issues) for a list of proposed features
