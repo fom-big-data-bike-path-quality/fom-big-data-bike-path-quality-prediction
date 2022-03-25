@@ -16,6 +16,7 @@ RUN pip install tqdm
 RUN pip install seaborn
 RUN pip install telegram-send
 RUN pip install fastapi
+RUN pip install fastapi_versioning
 RUN pip install uvicorn
 RUN pip install requests
 

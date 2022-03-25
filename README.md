@@ -45,6 +45,7 @@ pip install tqdm
 pip install seaborn
 pip install telegram-send
 pip install fastapi
+pip install fastapi_versioning
 pip install uvicorn
 pip install requests
 ```

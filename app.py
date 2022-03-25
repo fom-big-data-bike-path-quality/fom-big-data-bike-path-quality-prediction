@@ -9,6 +9,7 @@ import torch
 import uvicorn
 from fastapi import FastAPI, Response, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_versioning import VersionedFastAPI, version
 from pydantic import BaseModel
 
 file_path = os.path.realpath(__file__)
@@ -44,7 +45,8 @@ from cnn_classifier import CnnClassifier
 from lstm_classifier import LstmClassifier
 from test_values import sample_asphalt
 
-app = FastAPI()
+app = FastAPI(name="Bike Path Quality")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -106,7 +108,9 @@ class ErrorWrapper(BaseModel):
 
 
 @app.post('/predict/cnn', status_code=200)
-def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt, response: Response = None):
+@version(1, 0)
+def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt,
+                response: Response = None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Determine number of linear channels based on slice width
@@ -165,8 +169,11 @@ def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMe
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return ErrorWrapper(error=inst.args[0])
 
+
 @app.post('/predict/lstm')
-def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt, response: Response = None):
+@version(1, 0)
+def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements = sample_asphalt,
+                 response: Response = None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     # Set default values
@@ -225,6 +232,7 @@ def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithM
         response.status_code = status.HTTP_500_INTERNAL_SERVER_ERROR
         return ErrorWrapper(error=inst.args[0])
 
+
 def payload_to_json_file(results_path, results_file_name,
                          bike_activity_sample_with_measurements: BikeActivitySampleWithMeasurements):
     with open(os.path.join(results_path, results_file_name), "w") as json_file:
@@ -282,6 +290,8 @@ def payload_to_csv_file(results_path, results_file_name,
                 bike_activity_smoothness_type
             ])
 
+
+app = VersionedFastAPI(app, default_api_version=(1, 0))
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=False)
