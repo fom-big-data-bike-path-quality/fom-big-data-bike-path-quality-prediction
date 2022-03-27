@@ -113,18 +113,22 @@ def predict_cnn(bike_activity_sample_with_measurements: BikeActivitySampleWithMe
                 response: Response = None):
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
+    # Determine kernel size based on slice width
+    kernel_size = ModelPreparator().get_kernel_size(slice_width)
+
     # Determine number of linear channels based on slice width
     linear_channels = ModelPreparator().get_linear_channels(slice_width)
 
     # Define classifier
     classifier = CnnClassifier(
         input_channels=1,
+        kernel_size=kernel_size,
         num_classes=num_classes,
         linear_channels=linear_channels
     ).to(device)
 
     # Load model
-    model_version = "latest"
+    model_version = "2022-02-24-12:07:23"
     classifier.load_state_dict(torch.load(
         os.path.join(script_path, "results", "results", "cnn", model_version, "04-modelling", "model.pickle"),
         map_location=torch.device(device)
@@ -187,7 +191,7 @@ def predict_lstm(bike_activity_sample_with_measurements: BikeActivitySampleWithM
                                 dropout=dropout).to(device)
 
     # Load model
-    model_version = "latest"
+    model_version = "2022-02-25-08:43:39"
     classifier.load_state_dict(torch.load(
         os.path.join(script_path, "results", "results", "lstm", model_version, "04-modelling", "model.pickle"),
         map_location=torch.device(device)
